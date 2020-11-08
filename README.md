@@ -7,7 +7,9 @@ See [BUILDING.md](https://github.com/nodejs/node/blob/master/BUILDING.md) for in
 
 ### Project Clone & Install 
 <code>https://github.com/withMapSharing/MapSharing-Server.git</code>
+
 <code>cd MapSharing-Server</code>
+
 <code>npm install</code>
 
 ### Execution
