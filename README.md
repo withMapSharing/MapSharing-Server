@@ -6,7 +6,7 @@
 See [BUILDING.md](https://github.com/nodejs/node/blob/master/BUILDING.md) for instructions on how to build Node.js from source and a list of supported platforms.
 
 ### Project Clone & Install 
-<code>https://github.com/withMapSharing/MapSharing-Server.git</code>
+<code>git clone https://github.com/withMapSharing/MapSharing-Server.git</code>
 
 <code>cd MapSharing-Server</code>
 
