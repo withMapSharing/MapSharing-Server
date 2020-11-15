@@ -25,6 +25,7 @@ module.exports = (sequelize, DataTypes) => {
       rate: {
         type: DataTypes.INTEGER,
         allowNull: true,
+        defaultValue: -1
       },
       content: {
         type: DataTypes.STRING,
