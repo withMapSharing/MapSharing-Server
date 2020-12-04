@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.FLOAT,
         allowNull: false
       },
-      longtitude: {
+      longitude: {
         type: DataTypes.FLOAT,
         allowNull: false
       },
@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: 0
       },
-      reserveDay: {
+      reservedDay: {
         type: DataTypes.DATE,
         allowNull: true
       }
