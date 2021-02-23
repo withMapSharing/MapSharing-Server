@@ -30,7 +30,7 @@ exports.kakaoAuth = async function (req, res) {
                 }
             });
 
-            if (kakaoId != kakao.data.id) return res.json({isSuccess: false, code: 401, message: 'id가 동일하지 않음'});
+            if (kakaoId != kakao.data.id) return res.json({isSuccess: false, code: 402, message: 'id가 동일하지 않음'});
 
             try {
                 const selectUser = await userDao.selectUser(kakaoId);
@@ -64,10 +64,10 @@ exports.kakaoAuth = async function (req, res) {
                     );
                     return res.json({isSuccess: true, code: 200, message: "로그인 성공", jwt: token});
                 } else if (selectUser[0].status === 'dormant') {
-                    return res.json({isSuccess: false, code: 402, message: '휴면 계정'});
+                    return res.json({isSuccess: false, code: 403, message: '휴면 계정'});
                 }
                 else if (selectUser[0].status === 'deleted') {
-                    return res.json({isSuccess: false, code: 403, message: '탈퇴된 계정'});
+                    return res.json({isSuccess: false, code: 404, message: '탈퇴된 계정'});
                 }
             } catch (err) {
                 logger.error(`userDao selectUser error\n: ${err.message}`);
@@ -75,10 +75,10 @@ exports.kakaoAuth = async function (req, res) {
             }
         } catch (err) {
             logger.error(`Access Token error\n: ${err.message}`);
-            return res.json({isSuccess: false, code: 401, message: '유효하지 않은 Access Token'});
+            return res.json({isSuccess: false, code: 401, message: '유효하지 않은 토큰'});
         }
     } catch (err) {
         logger.error(`Kakao Login error\n: ${err.message}`);
-        return res.json({isSuccess: false, code: 400, message: '토큰 검사 에러'});
+        return res.json({isSuccess: false, code: 400, message: '토큰 확인 중 에러'});
     }
 };
