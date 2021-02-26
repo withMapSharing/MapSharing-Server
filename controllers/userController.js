@@ -20,7 +20,6 @@ exports.kakaoAuth = async function (req, res) {
     // validation
     if (!kakaoId) return res.json({isSuccess: false, code: 300, message: "카카오 아이디 미입력"});
     if (!accessToken) return res.json({isSuccess: false, code: 301, message: "AccessToken 미입력"});
-    if (!nickname) return res.json({isSuccess: false, code: 302, message: "닉네임 미입력"});
     
     try {
         try {
@@ -36,6 +35,7 @@ exports.kakaoAuth = async function (req, res) {
                 const selectUser = await userDao.selectUser(kakaoId);
 
                 if (selectUser.length === 0 ) {
+                    if (!nickname) return res.json({isSuccess: false, code: 302, message: "회원가입 시 닉네임 미입력"});
                     // 회원가입
                     const insertUserRows = await userDao.insertUser(kakaoId, nickname, profileImg);
                     // JWT 토큰 발급

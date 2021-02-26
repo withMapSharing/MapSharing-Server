@@ -20,6 +20,7 @@ module.exports = function () {
 
     app.use(cors());
 
+    require('../routes/indexRoute')(app);
     require('../routes/userRoute')(app);
 
     return app;
