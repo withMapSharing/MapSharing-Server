@@ -33,7 +33,27 @@ where P.status = 'normal' and PL.status = 'normal' and
     return selectPlaceListRows;
 }
 
+// API 3 - 리스트 목록 조회
+async function selectAllPlaceList(userIdx) {
+    const connection = await pool.getConnection(async (conn) => conn);
+    const selectAllPlaceListQuery = `
+    SELECT pl.placeListIdx, pl.name as placeListName,
+       IF (pl.isPublic, TRUE, FALSE) as isPublic,
+       pl.description
+    FROM PlaceList pl
+    WHERE pl.status = 'normal' and pl.placeListIdx IN (SELECT i.placeListIdx FROM Invite i WHERE i.status = 'normal' and i.userIdx = ?);
+                    `;
+    const selectAllPlaceListParams = [userIdx];
+    const [selectAllPlaceListRows] = await connection.query(
+        selectAllPlaceListQuery,
+        selectAllPlaceListParams
+    );
+    connection.release();
+    return selectAllPlaceListRows;
+}
+
 module.exports = {
     selectUserInfo,
     selectPlaceList,
+    selectAllPlaceList,
 };

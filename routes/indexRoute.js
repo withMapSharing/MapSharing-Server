@@ -3,4 +3,5 @@ module.exports = function(app){
     const jwtMiddleware = require('../config/jwtMiddleware');
 
     app.get('/api', jwtMiddleware, index.home);
+    app.get('/api/list', jwtMiddleware, index.showPlaceList);
 };
