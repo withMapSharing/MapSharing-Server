@@ -1,20 +1,6 @@
 # MapSharing-Server
 같이갈지도(withMapSharing) 서버 파트
 
-## Usage
-### Building Node.js
-See [BUILDING.md](https://github.com/nodejs/node/blob/master/BUILDING.md) for instructions on how to build Node.js from source and a list of supported platforms.
-
-### Project Clone & Install 
-<code>git clone https://github.com/withMapSharing/MapSharing-Server.git</code>
-
-<code>cd MapSharing-Server</code>
-
-<code>npm install</code>
-
-### Execution
-<code>npm start</code>
-
 ## Code Convention
 ### Commit Messages
 | 메시지 | 설명 |
