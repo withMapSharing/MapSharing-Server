@@ -38,10 +38,10 @@ async function selectAllPlaceList(userIdx) {
     const connection = await pool.getConnection(async (conn) => conn);
     const selectAllPlaceListQuery = `
     SELECT pl.placeListIdx, pl.name as placeListName,
-       IF (pl.isPublic, TRUE, FALSE) as isPublic,
+       IF (pl.isPublic, 'TRUE', 'FALSE') as isPublic,
        pl.description
-    FROM PlaceList pl
-    WHERE pl.status = 'normal' and pl.placeListIdx IN (SELECT i.placeListIdx FROM Invite i WHERE i.status = 'normal' and i.userIdx = ?);
+FROM PlaceList pl
+WHERE pl.status = 'normal' and pl.placeListIdx IN (SELECT i.placeListIdx FROM Invite i WHERE i.status = 'normal' and i.userIdx = ?);
                     `;
     const selectAllPlaceListParams = [userIdx];
     const [selectAllPlaceListRows] = await connection.query(
