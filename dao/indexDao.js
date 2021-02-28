@@ -52,8 +52,64 @@ WHERE pl.status = 'normal' and pl.placeListIdx IN (SELECT i.placeListIdx FROM In
     return selectAllPlaceListRows;
 }
 
+// API 4 - 리스트 내 장소 조회
+async function isValidPlaceListIdx(placeListIdx, userIdx) {
+    const connection = await pool.getConnection(async (conn) => conn);
+    const isValidPlaceListIdxQuery = `
+    SELECT EXISTS(
+    SELECT p.placeListIdx
+    FROM PlaceList p
+    LEFT JOIN Invite i ON p.placeListIdx = i.placeListIdx
+    WHERE p.placeListIdx = ? AND p.status = 'normal' AND i.userIdx = ? AND i.status = 'normal'
+) as EXIST;
+                    `;
+    const isValidPlaceListIdxParams = [placeListIdx, userIdx];
+    const [isValidPlaceListIdxRows] = await connection.query(
+        isValidPlaceListIdxQuery,
+        isValidPlaceListIdxParams
+    );
+    connection.release();
+    return isValidPlaceListIdxRows;
+}
+
+async function selectPlaceListInfo(placeListIdx, userIdx) {
+    const connection = await pool.getConnection(async (conn) => conn);
+    const selectPlaceListInfoQuery = `
+    SELECT pl.placeListIdx, pl.name as placeListName, pl.color as placeListColor
+FROM PlaceList pl
+LEFT JOIN Invite i ON pl.placeListIdx = i.placeListIdx
+WHERE pl.placeListIdx = ? AND pl.status = 'normal' AND i.userIdx = ? AND i.status = 'normal';
+                    `;
+    const selectPlaceListInfoParams = [placeListIdx, userIdx];
+    const [selectPlaceListInfoRows] = await connection.query(
+        selectPlaceListInfoQuery,
+        selectPlaceListInfoParams
+    );
+    connection.release();
+    return selectPlaceListInfoRows;
+}
+
+async function selectPlaceInList(placeListIdx) {
+    const connection = await pool.getConnection(async (conn) => conn);
+    const selectPlaceInListQuery = `
+    SELECT p.placeIdx, p.name as placeName, p.lat, p.lng
+FROM Place p
+WHERE p.status = 'normal' AND p.placeListIdx = ?;
+                    `;
+    const selectPlaceInListParams = [placeListIdx];
+    const [selectPlaceInListRows] = await connection.query(
+        selectPlaceInListQuery,
+        selectPlaceInListParams
+    );
+    connection.release();
+    return selectPlaceInListRows;
+}
+
 module.exports = {
     selectUserInfo,
     selectPlaceList,
     selectAllPlaceList,
+    isValidPlaceListIdx,
+    selectPlaceListInfo,
+    selectPlaceInList,
 };
