@@ -1,4 +1,3 @@
-const {pool} = require('../config/database');
 const {logger} = require('../config/winston');
 
 const indexDao = require('../dao/indexDao');
@@ -106,6 +105,47 @@ exports.showPlaceInList = async function (req, res) {
 
     } catch (err) {
         logger.error(`API 4 - select place in list error\n: ${err.message}`);
+        return res.json({isSuccess: false, code: 500, message: `DB Error: ${err.message}`});
+    }
+};
+
+/**
+ update : 21.02.28.
+ API 5: 리스트 추가
+ */
+exports.addPlaceList = async function (req, res) {
+    const userIdx = req.verifiedToken.id;
+    const {
+        name, description, color, isPublic
+    } = req.body;
+
+    if (!name) return res.json({isSuccess: false, code: 302, message: "리스트 이름 미입력"});
+    if (!description) return res.json({isSuccess: false, code: 303, message: "리스트 설명 미입력"});
+    if (!color && !Number.isInteger(color)) return res.json({isSuccess: false, code: 304, message: "색상 미입력"});
+    else if (color < 0 || color > 9 || !Number.isInteger(color)) return res.json({isSuccess: false, code: 305, message: "색상 값 범위 초과"});
+    if (!isPublic && !Number.isInteger(isPublic)) return res.json({isSuccess: false, code: 306, message: "공개설정 미입력"});
+    else if (isPublic < 0 || isPublic > 1 || !Number.isInteger(isPublic)) return res.json({isSuccess: false, code: 307, message: "공개범위 값 범위 초과"});
+
+    try {
+        // 리스트 추가
+        const insertPlaceListRows = await indexDao.insertPlaceList(name, description, color, isPublic, userIdx);
+
+        if (!insertPlaceListRows.insertId) res.json({isSuccess: false, code: 501, message: "트랜잭션 에러"});
+
+        const result = {
+            "placeListIdx": insertPlaceListRows.insertId,
+            "placeListName": name
+        };
+
+        return res.json({
+            isSuccess: true,
+            code: 200,
+            message: "리스트 추가 성공",
+            result: result
+        });
+
+    } catch (err) {
+        logger.error(`API 5 - add place error\n: ${err.message}`);
         return res.json({isSuccess: false, code: 500, message: `DB Error: ${err.message}`});
     }
 };

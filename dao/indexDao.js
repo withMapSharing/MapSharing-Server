@@ -1,4 +1,5 @@
 const { pool } = require("../config/database");
+const {logger} = require('../config/winston');
 
 // API 2 - 홈 화면 (유저 정보)
 async function selectUserInfo(userIdx) {
@@ -41,7 +42,8 @@ async function selectAllPlaceList(userIdx) {
        IF (pl.isPublic, 'TRUE', 'FALSE') as isPublic,
        pl.description
 FROM PlaceList pl
-WHERE pl.status = 'normal' and pl.placeListIdx IN (SELECT i.placeListIdx FROM Invite i WHERE i.status = 'normal' and i.userIdx = ?);
+WHERE pl.status = 'normal' and pl.placeListIdx IN (SELECT i.placeListIdx FROM Invite i WHERE i.status = 'normal' and i.userIdx = ?)
+ORDER BY pl.updatedAt DESC;
                     `;
     const selectAllPlaceListParams = [userIdx];
     const [selectAllPlaceListRows] = await connection.query(
@@ -94,7 +96,8 @@ async function selectPlaceInList(placeListIdx) {
     const selectPlaceInListQuery = `
     SELECT p.placeIdx, p.name as placeName, p.lat, p.lng
 FROM Place p
-WHERE p.status = 'normal' AND p.placeListIdx = ?;
+WHERE p.status = 'normal' AND p.placeListIdx = ?
+ORDER BY p.updatedAt DESC;
                     `;
     const selectPlaceInListParams = [placeListIdx];
     const [selectPlaceInListRows] = await connection.query(
@@ -105,6 +108,52 @@ WHERE p.status = 'normal' AND p.placeListIdx = ?;
     return selectPlaceInListRows;
 }
 
+// API 5
+async function insertPlaceList(name, description, color, isPublic, userIdx) {
+    try {
+        const connection = await pool.getConnection(async conn => conn);
+        try {
+            await connection.beginTransaction(); // START TRANSACTION
+            // 리스트 추가
+            const insertPlaceListQuery = `
+            INSERT INTO PlaceList(userIdx, name, description, color, isPublic) VALUES (?, ?, ?, ?, ?);
+                            `;
+            const insertPlaceListParams = [userIdx, name, description, color, isPublic];
+            const [insertPlaceListRows] = await connection.query(
+                insertPlaceListQuery,
+                insertPlaceListParams
+            );
+            try {
+                // 초대 테이블 추가
+                const insertInviteQuery = `
+                INSERT INTO Invite (userIdx, placeListIdx, status) VALUES (?, ?, 'normal');
+                                `;
+                const insertInviteParams = [userIdx, insertPlaceListRows.insertId];
+                const [insertInviteRows] = await connection.query(
+                    insertInviteQuery,
+                    insertInviteParams
+                );
+            } catch (err) {
+                await connection.rollback(); // ROLLBACK
+                connection.release();
+                logger.error(`API 5 transaction Query 2 error\n: ${JSON.stringify(err)}`);
+                return false;
+            }
+            await connection.commit(); // COMMIT
+            connection.release();
+            return insertPlaceListRows;
+        } catch(err) {
+            await connection.rollback(); // ROLLBACK
+            connection.release();
+            logger.error(`API 5 transaction Query 1 error\n: ${JSON.stringify(err)}`);
+            return false;
+        }
+    } catch(err) {
+        logger.error(`API 5 transaction DB Connection error\n: ${JSON.stringify(err)}`);
+        return false;
+    }
+}
+
 module.exports = {
     selectUserInfo,
     selectPlaceList,
@@ -112,4 +161,5 @@ module.exports = {
     isValidPlaceListIdx,
     selectPlaceListInfo,
     selectPlaceInList,
+    insertPlaceList,
 };
