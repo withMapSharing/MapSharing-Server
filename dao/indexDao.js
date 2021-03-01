@@ -154,6 +154,27 @@ async function insertPlaceList(name, description, color, isPublic, userIdx) {
     }
 }
 
+// API 6
+async function selectPlaceListInKeyword(userIdx, keyword) {
+    const connection = await pool.getConnection(async (conn) => conn);
+    const selectPlaceListInKeywordQuery = `
+    SELECT pl.placeListIdx, pl.name as placeListName,
+       IF (pl.isPublic, 'TRUE', 'FALSE') as isPublic,
+       pl.description
+FROM PlaceList pl
+WHERE (pl.name LIKE '%${keyword}%' OR pl.description LIKE '%${keyword}%')
+      AND pl.status = 'normal' and pl.placeListIdx IN (SELECT i.placeListIdx FROM Invite i WHERE i.status = 'normal' and i.userIdx = ?)
+      ORDER BY pl.updatedAt DESC;
+                    `;
+    const selectPlaceListInKeywordParams = [userIdx];
+    const [selectPlaceListInKeywordRows] = await connection.query(
+        selectPlaceListInKeywordQuery,
+        selectPlaceListInKeywordParams
+    );
+    connection.release();
+    return selectPlaceListInKeywordRows;
+}
+
 module.exports = {
     selectUserInfo,
     selectPlaceList,
@@ -162,4 +183,5 @@ module.exports = {
     selectPlaceListInfo,
     selectPlaceInList,
     insertPlaceList,
+    selectPlaceListInKeyword,
 };

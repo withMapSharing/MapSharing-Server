@@ -149,3 +149,41 @@ exports.addPlaceList = async function (req, res) {
         return res.json({isSuccess: false, code: 500, message: `DB Error: ${err.message}`});
     }
 };
+
+/**
+ update : 21.03.01.
+ API 6: 리스트 검색
+ */
+exports.searchPlaceList = async function (req, res) {
+    const userIdx = req.verifiedToken.id;
+    const keyword = req.query.keyword;
+
+    if (!keyword) return res.json({isSuccess: false, code: 302, message: "keyword 미입력"});
+
+    try {
+        // 유저 정보 - 닉네임, 프로필이미지
+        const [selectUserInfoRows] = await indexDao.selectUserInfo(userIdx);
+
+        // 리스트 목록 정보
+        const selectPlaceListInKeywordRows = await indexDao.selectPlaceListInKeyword(userIdx, keyword);
+
+        if (selectPlaceListInKeywordRows.length === 0) return res.json({isSuccess: false, code: 400, message: "검색 결과 없음"});
+
+        const result = {
+            "userInfo": selectUserInfoRows,
+            "keyword" : keyword,
+            "placeList": selectPlaceListInKeywordRows,
+        }
+
+        return res.json({
+            isSuccess: true,
+            code: 200,
+            message: "리스트 검색 성공",
+            result: result
+        });
+
+    } catch (err) {
+        logger.error(`API 3 - select list error\n: ${err.message}`);
+        return res.json({isSuccess: false, code: 500, message: `DB Error: ${err.message}`});
+    }
+};
