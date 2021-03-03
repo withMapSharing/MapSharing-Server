@@ -175,6 +175,42 @@ WHERE (pl.name LIKE '%${keyword}%' OR pl.description LIKE '%${keyword}%')
     return selectPlaceListInKeywordRows;
 }
 
+// API 7
+async function isValidPlaceIdx(placeIdx, userIdx) {
+    const connection = await pool.getConnection(async (conn) => conn);
+    const isValidPlaceIdxQuery = `
+    SELECT EXISTS(
+        SELECT p.placeIdx
+        FROM Place p
+        WHERE p.placeIdx = ? AND p.status = 'normal' AND p.placeListIdx IN (SELECT i.placeListIdx FROM Invite i WHERE i.userIdx = ? AND i.status = 'normal')
+    ) as EXIST;
+                    `;
+    const isValidPlaceIdxParams = [placeIdx, userIdx];
+    const [isValidPlaceIdxRows] = await connection.query(
+        isValidPlaceIdxQuery,
+        isValidPlaceIdxParams
+    );
+    connection.release();
+    return isValidPlaceIdxRows;
+}
+
+async function selectPlace(placeIdx) {
+    const connection = await pool.getConnection(async (conn) => conn);
+    const selectPlaceQuery = `
+    SELECT p.placeListIdx, pl.name as placeListName, p.placeIdx, p.name as placeName, p.lat, p.lng
+FROM Place p
+LEFT JOIN PlaceList pl ON pl.placeListIdx = p.placeListIdx
+WHERE p.placeIdx = ? AND p.status = 'normal' AND pl.status = 'normal';
+                    `;
+    const selectPlaceParams = [placeIdx];
+    const [selectPlaceRows] = await connection.query(
+        selectPlaceQuery,
+        selectPlaceParams
+    );
+    connection.release();
+    return selectPlaceRows;
+}
+
 module.exports = {
     selectUserInfo,
     selectPlaceList,
@@ -184,4 +220,6 @@ module.exports = {
     selectPlaceInList,
     insertPlaceList,
     selectPlaceListInKeyword,
+    isValidPlaceIdx,
+    selectPlace,
 };

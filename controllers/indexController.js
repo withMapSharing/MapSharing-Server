@@ -183,7 +183,41 @@ exports.searchPlaceList = async function (req, res) {
         });
 
     } catch (err) {
-        logger.error(`API 3 - select list error\n: ${err.message}`);
+        logger.error(`API 6 - search list error\n: ${err.message}`);
+        return res.json({isSuccess: false, code: 500, message: `DB Error: ${err.message}`});
+    }
+};
+
+/**
+ update : 21.03.04.
+ API 7: 장소 정보 조회
+ */
+exports.showPlace = async function (req, res) {
+    const userIdx = req.verifiedToken.id;
+    const placeIdx = req.params.placeIdx;
+
+    try {
+        const [isValidPlaceIdxRows] = await indexDao.isValidPlaceIdx(placeIdx, userIdx)
+        if (isValidPlaceIdxRows.EXIST == 0) {
+            return res.json({isSuccess: false, code: 303, message: "유효하지 않은 리스트 인덱스 (없는 인덱스 or 초대되지 않은 인덱스)"});
+        }
+    } catch (err) {
+        return res.json({isSuccess: false, code: 302, message: "인덱스 미입력"});
+    }
+
+    try {
+        // 장소 정보
+        const selectPlaceRows = await indexDao.selectPlace(placeIdx);
+
+        return res.json({
+            isSuccess: true,
+            code: 200,
+            message: "장소 조회 성공",
+            result: selectPlaceRows
+        });
+
+    } catch (err) {
+        logger.error(`API 7 - select place error\n: ${err.message}`);
         return res.json({isSuccess: false, code: 500, message: `DB Error: ${err.message}`});
     }
 };
